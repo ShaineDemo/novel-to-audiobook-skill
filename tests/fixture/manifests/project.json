@@ -1,0 +1,10 @@
+{
+  "title": "Fixture",
+  "source_file": "source/story.md",
+  "language": "en",
+  "output_dir": ".",
+  "visual": {"aspect_ratio": "16:9"},
+  "tts": {"provider": "aliyun-bailian", "profile": "token-plan", "model": "example", "format": "wav", "sample_rate": 24000},
+  "mix": {"integrated_lufs": -17.0, "true_peak_dbtp": -1.5}
+}
+

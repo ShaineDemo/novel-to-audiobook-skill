@@ -1,0 +1,5 @@
+[
+  {"id": "001", "shot_id": "shot-01", "speaker": "Narrator", "text": "The rain stopped.", "voice_id": "voice-n", "continuity_group": null},
+  {"id": "002", "shot_id": "shot-01", "speaker": "Traveler", "text": "I should read it.", "voice_id": "voice-a", "continuity_group": "traveler-letter"}
+]
+

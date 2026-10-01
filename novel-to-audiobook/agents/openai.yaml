@@ -1,0 +1,5 @@
+interface:
+  display_name: "Novel to Audiobook"
+  short_description: "Build illustrated audiobooks with Codex and Bailian"
+  default_prompt: "Use $novel-to-audiobook to turn my novel or short story into structured storyboards, consistent images, multi-character Bailian TTS, and a synchronized audio delivery package."
+

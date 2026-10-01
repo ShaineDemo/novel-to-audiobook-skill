@@ -1,0 +1,19 @@
+[
+  {
+    "id": "001",
+    "shot_id": "shot-01",
+    "speaker": "Narrator",
+    "text": "Example narration.",
+    "voice_id": "replace-with-approved-voice",
+    "emotion": "restrained",
+    "rate": 1.0,
+    "pitch": 1.0,
+    "instruction": "Narrate naturally and clearly; avoid announcer delivery.",
+    "continuity_group": null,
+    "audio_file": null,
+    "start": null,
+    "end": null,
+    "duration": null
+  }
+]
+

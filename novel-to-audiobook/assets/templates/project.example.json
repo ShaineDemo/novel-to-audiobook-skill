@@ -1,0 +1,24 @@
+{
+  "title": "Example illustrated audiobook",
+  "source_file": "source/story.md",
+  "language": "zh-CN",
+  "output_dir": ".",
+  "visual": {
+    "aspect_ratio": "16:9",
+    "style": "historically grounded illustrated drama",
+    "continuity_required": true
+  },
+  "tts": {
+    "provider": "aliyun-bailian",
+    "profile": "token-plan",
+    "model": "qwen-audio-3.1-tts-next",
+    "format": "wav",
+    "sample_rate": 24000
+  },
+  "mix": {
+    "integrated_lufs": -17.0,
+    "true_peak_dbtp": -1.5,
+    "text_display_delay_seconds": 0.42
+  }
+}
+
