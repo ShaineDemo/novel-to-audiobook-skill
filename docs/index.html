@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="小说转图文有声书 Skill 的可交互 UI 演示" />
+  <title>小说转图文有声书 · 交互演示</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #261d18;
+      --muted: #6f6259;
+      --paper: #f5efe3;
+      --paper-strong: #fffaf0;
+      --line: rgba(57, 40, 30, .18);
+      --accent: #9d4937;
+      --accent-dark: #733528;
+      --shadow: 0 28px 80px rgba(26, 16, 11, .24);
+      --serif: "Songti SC", "Noto Serif SC", STSong, SimSun, serif;
+      --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: #2b2521; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--serif);
+      background: #2b2521;
+      overflow-x: hidden;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(157, 73, 55, .42);
+      outline-offset: 3px;
+    }
+
+    .backdrop {
+      position: fixed;
+      inset: -32px;
+      z-index: -2;
+      background: #302721 center / cover no-repeat;
+      filter: blur(24px) saturate(.65) brightness(.54);
+      transform: scale(1.08);
+      transition: background-image .45s ease;
+    }
+
+    .backdrop::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(18, 12, 9, .25), rgba(18, 12, 9, .62));
+    }
+
+    .app-shell {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 38px;
+    }
+
+    .stage, .player {
+      background:
+        radial-gradient(circle at 15% 10%, rgba(157, 73, 55, .06), transparent 28%),
+        repeating-linear-gradient(0deg, transparent 0 4px, rgba(80, 59, 43, .025) 5px),
+        var(--paper);
+      border: 1px solid rgba(255, 255, 255, .48);
+      box-shadow: var(--shadow), inset 0 0 0 1px rgba(77, 53, 38, .07);
+    }
+
+    .stage {
+      position: relative;
+      padding: 22px 38px 34px;
+      border-radius: 44px;
+      overflow: hidden;
+    }
+
+    .book-title {
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: .08em;
+    }
+
+    .scene-figure {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid rgba(41, 29, 22, .26);
+      border-radius: 24px;
+      background: #221d19;
+    }
+
+    .scene-image {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      transition: opacity .24s ease, transform .45s ease;
+    }
+
+    .scene-figure.is-changing .scene-image { opacity: .18; transform: scale(1.015); }
+
+    .scene-label {
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      padding: 8px 12px;
+      color: #fff;
+      background: rgba(18, 13, 10, .72);
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 999px;
+      font-family: var(--sans);
+      font-size: 12px;
+      letter-spacing: .08em;
+      backdrop-filter: blur(10px);
+    }
+
+    .scene-body { padding: 26px 4px 4px; }
+
+    .scene-heading {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 6vw, 58px);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -.06em;
+    }
+
+    .scene-meta { text-align: right; font-family: var(--sans); }
+    .chapter-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .34);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .scene-count { margin-top: 7px; color: var(--muted); font-size: 12px; }
+
+    .reading {
+      display: grid;
+      grid-template-columns: 60px minmax(0, 1fr);
+      gap: 18px;
+      margin-top: 22px;
+      min-height: 158px;
+    }
+
+    .voice-avatar {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22);
+      font-family: var(--sans);
+      font-size: 18px;
+      font-weight: 750;
+    }
+
+    .voice-line {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-family: var(--sans);
+    }
+
+    .voice-name { color: var(--accent-dark); font-weight: 750; }
+    .voice-role { color: var(--muted); font-size: 12px; }
+    .story-text {
+      margin: 0;
+      font-size: clamp(17px, 2.1vw, 22px);
+      line-height: 1.86;
+      text-align: justify;
+      text-wrap: pretty;
+    }
+
+    .text-progress {
+      width: 100%;
+      height: 2px;
+      margin-top: 16px;
+      overflow: hidden;
+      background: rgba(157, 73, 55, .10);
+    }
+    .text-progress span {
+      display: block;
+      width: var(--read, 0%);
+      height: 100%;
+      background: var(--accent);
+      transition: width .12s linear;
+    }
+
+    .player {
+      position: sticky;
+      bottom: 14px;
+      display: grid;
+      grid-template-columns: auto minmax(180px, 1fr) auto;
+      align-items: center;
+      gap: 22px;
+      min-height: 76px;
+      margin-top: 16px;
+      padding: 12px 22px;
+      border-radius: 38px;
+      z-index: 10;
+    }
+
+    .transport, .utilities { display: flex; align-items: center; gap: 6px; }
+    .icon-button, .speed-button {
+      min-width: 46px;
+      height: 46px;
+      display: inline-grid;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      color: var(--ink);
+      background: transparent;
+      transition: background .18s ease, color .18s ease;
+    }
+    .icon-button:hover, .speed-button:hover { background: rgba(157, 73, 55, .10); }
+    .icon-button:active, .speed-button:active { background: rgba(157, 73, 55, .18); }
+    .icon-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .play-button { color: #fff; background: var(--ink); }
+    .play-button:hover { color: #fff; background: var(--accent-dark); }
+
+    .timeline { min-width: 0; }
+    .timeline-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 11px;
+    }
+    .timeline-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .timeline-time { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+
+    input[type="range"] {
+      width: 100%;
+      height: 24px;
+      margin: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .speed-button {
+      width: auto;
+      min-width: 50px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .hint {
+      margin: 14px 0 0;
+      text-align: center;
+      color: rgba(255, 255, 255, .68);
+      font-family: var(--sans);
+      font-size: 12px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 720px) {
+      .app-shell { width: min(100% - 18px, 620px); padding: 10px 0 26px; }
+      .stage { padding: 14px 14px 24px; border-radius: 28px; }
+      .book-title { min-height: 34px; font-size: 12px; }
+      .scene-figure { border-radius: 18px; }
+      .scene-label { left: 12px; top: 12px; }
+      .scene-body { padding-top: 20px; }
+      .scene-heading { grid-template-columns: 1fr; gap: 12px; align-items: start; }
+      .scene-meta { text-align: left; }
+      .scene-count { display: inline; margin-left: 8px; }
+      .reading { grid-template-columns: 44px minmax(0, 1fr); gap: 12px; min-height: 210px; }
+      .voice-avatar { width: 42px; height: 42px; font-size: 15px; }
+      .story-text { font-size: 17px; line-height: 1.78; }
+      .player { grid-template-columns: auto 1fr; gap: 10px 14px; padding: 10px 12px; border-radius: 28px; }
+      .timeline { grid-column: 1 / -1; grid-row: 1; }
+      .transport { grid-column: 1; grid-row: 2; }
+      .utilities { grid-column: 2; grid-row: 2; justify-content: flex-end; }
+      .hint { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+  <main class="app-shell">
+    <article class="stage" aria-labelledby="sceneTitle">
+      <div class="book-title">大明之南洋惊变 · 图文有声书 Demo</div>
+      <figure class="scene-figure" id="sceneFigure">
+        <img class="scene-image" id="sceneImage" src="assets/scene-01.png" alt="退潮后的蚶江澳滩涂" />
+        <figcaption class="scene-label" id="sceneLabel">镜 01 · 蚶江澳</figcaption>
+      </figure>
+
+      <section class="scene-body">
+        <header class="scene-heading">
+          <h1 id="sceneTitle">潮退</h1>
+          <div class="scene-meta">
+            <div class="chapter-tag" id="chapterTag">第一章 · 潮退信至</div>
+            <div class="scene-count" id="sceneCount">01 / 03</div>
+          </div>
+        </header>
+
+        <div class="reading">
+          <div class="voice-avatar" id="voiceAvatar" aria-hidden="true">旁</div>
+          <div>
+            <div class="voice-line"><span class="voice-name" id="voiceName">旁白</span><span class="voice-role" id="voiceRole">冷静铺陈</span></div>
+            <p class="story-text" id="storyText">二月初三，午后，退潮。蚶江澳的滩涂一寸一寸露出来。蛏埕上的石条先出水，接着是蚝壳堆。</p>
+            <div class="text-progress" aria-hidden="true"><span id="textProgress"></span></div>
+          </div>
+        </div>
+      </section>
+    </article>
+
+    <section class="player" aria-label="有声书播放器">
+      <div class="transport">
+        <button class="icon-button" id="previousButton" type="button" aria-label="上一幕">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M18 6l-8 6 8 6z" /></svg>
+        </button>
+        <button class="icon-button play-button" id="playButton" type="button" aria-label="播放" aria-pressed="false">
+          <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" /></svg>
+        </button>
+        <button class="icon-button" id="nextButton" type="button" aria-label="下一幕">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M6 6l8 6-8 6z" /></svg>
+        </button>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-head"><span class="timeline-title" id="timelineTitle">大明之南洋惊变 · 潮退</span><span class="timeline-time"><span id="currentTime">0:00</span> / <span id="duration">0:00</span></span></div>
+        <label class="sr-only" for="progress">播放进度</label>
+        <input id="progress" type="range" min="0" max="1" value="0" step="0.01" />
+      </div>
+
+      <div class="utilities">
+        <button class="speed-button" id="speedButton" type="button" aria-label="播放速度 1.0 倍">1.0×</button>
+        <button class="icon-button" id="muteButton" type="button" aria-label="静音" aria-pressed="false">
+          <svg id="volumeIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h4l5 4V6L9 10H5zM17 9a4 4 0 010 6M19 7a7 7 0 010 10" /></svg>
+        </button>
+      </div>
+
+      <audio id="audio" preload="metadata" src="assets/audio/narrator.mp3"></audio>
+    </section>
+    <p class="hint">空格播放 / 暂停 · ← → 切换分镜</p>
+  </main>
+
+  <script>
+    const scenes = [
+      {
+        title: "潮退",
+        chapter: "第一章 · 潮退信至",
+        label: "镜 01 · 蚶江澳",
+        speaker: "旁白",
+        role: "冷静铺陈",
+        avatar: "旁",
+        image: "assets/scene-01.png?v=2",
+        imageAlt: "退潮后的蚶江澳滩涂",
+        audio: "assets/audio/narrator.mp3",
+        text: "二月初三，午后，退潮。蚶江澳的滩涂一寸一寸露出来。蛏埕上的石条先出水，接着是蚝壳堆。"
+      },
+      {
+        title: "血书来信",
+        chapter: "第一章 · 潮退信至",
+        label: "镜 02 · 油布包",
+        speaker: "林霈",
+        role: "火石屿矿工",
+        avatar: "林",
+        image: "assets/scene-02.png?v=2",
+        imageAlt: "被海水与血迹浸染的来信",
+        audio: "assets/audio/linpei.mp3",
+        text: "火石屿上做工的，连我，共四百一十七名。下面是别的事，你莫当我在说闲话。十月起，矿洞里不见七个人。"
+      },
+      {
+        title: "巡检司",
+        chapter: "第一章 · 潮退信至",
+        label: "镜 03 · 官署对话",
+        speaker: "刘贵 / 沈砚舟",
+        role: "多角色对话",
+        avatar: "对",
+        image: "assets/scene-03.png?v=2",
+        imageAlt: "巡检司内的对话场景",
+        audio: "assets/audio/dialogue.mp3",
+        text: "“这不是劫杀。”沈砚舟说。刘贵把茶碗顿了一下：“那是什么？”不同角色使用固定音色，仅通过语速、停顿和力度表现当前情绪。"
+      }
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const audio = $("audio");
+    const progress = $("progress");
+    const playButton = $("playButton");
+    const playIcon = $("playIcon");
+    const muteButton = $("muteButton");
+    const volumeIcon = $("volumeIcon");
+    const speedButton = $("speedButton");
+    const speeds = [1, 1.1, 1.25, .9];
+    let sceneIndex = 0;
+    let speedIndex = 0;
+
+    function formatTime(value) {
+      if (!Number.isFinite(value)) return "0:00";
+      const minutes = Math.floor(value / 60);
+      const seconds = Math.floor(value % 60).toString().padStart(2, "0");
+      return `${minutes}:${seconds}`;
+    }
+
+    function renderScene(index) {
+      const scene = scenes[index];
+      const figure = $("sceneFigure");
+      figure.classList.add("is-changing");
+      window.setTimeout(() => {
+        $("sceneImage").src = scene.image;
+        $("sceneImage").alt = scene.imageAlt;
+        $("backdrop").style.backgroundImage = `url("${scene.image}")`;
+        $("sceneLabel").textContent = scene.label;
+        $("sceneTitle").textContent = scene.title;
+        $("chapterTag").textContent = scene.chapter;
+        $("sceneCount").textContent = `${String(index + 1).padStart(2, "0")} / ${String(scenes.length).padStart(2, "0")}`;
+        $("voiceAvatar").textContent = scene.avatar;
+        $("voiceName").textContent = scene.speaker;
+        $("voiceRole").textContent = scene.role;
+        $("storyText").textContent = scene.text;
+        $("timelineTitle").textContent = `大明之南洋惊变 · ${scene.title}`;
+        figure.classList.remove("is-changing");
+      }, 130);
+    }
+
+    function loadScene(nextIndex, continuePlaying = false) {
+      const shouldPlay = continuePlaying || (!audio.paused && !audio.ended);
+      audio.pause();
+      sceneIndex = (nextIndex + scenes.length) % scenes.length;
+      audio.src = scenes[sceneIndex].audio;
+      audio.load();
+      progress.value = 0;
+      $("currentTime").textContent = "0:00";
+      $("duration").textContent = "0:00";
+      $("textProgress").style.setProperty("--read", "0%");
+      renderScene(sceneIndex);
+      if (shouldPlay) audio.addEventListener("canplay", () => audio.play().catch(() => {}), { once: true });
+    }
+
+    function togglePlay() {
+      if (audio.paused) audio.play().catch(() => {});
+      else audio.pause();
+    }
+
+    function updatePlayState() {
+      const playing = !audio.paused;
+      playButton.setAttribute("aria-label", playing ? "暂停" : "播放");
+      playButton.setAttribute("aria-pressed", String(playing));
+      playIcon.innerHTML = playing
+        ? '<path d="M8 6v12M16 6v12" />'
+        : '<path d="M8 5l11 7-11 7z" />';
+    }
+
+    function updateTimeline() {
+      const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+      progress.max = duration || 1;
+      progress.value = audio.currentTime || 0;
+      $("currentTime").textContent = formatTime(audio.currentTime);
+      $("duration").textContent = formatTime(duration);
+      const ratio = duration ? (audio.currentTime / duration) * 100 : 0;
+      $("textProgress").style.setProperty("--read", `${ratio}%`);
+    }
+
+    $("previousButton").addEventListener("click", () => loadScene(sceneIndex - 1));
+    $("nextButton").addEventListener("click", () => loadScene(sceneIndex + 1));
+    playButton.addEventListener("click", togglePlay);
+    progress.addEventListener("input", () => { audio.currentTime = Number(progress.value); updateTimeline(); });
+    speedButton.addEventListener("click", () => {
+      speedIndex = (speedIndex + 1) % speeds.length;
+      audio.playbackRate = speeds[speedIndex];
+      speedButton.textContent = `${speeds[speedIndex].toFixed(2).replace(/0$/, "")}×`;
+      speedButton.setAttribute("aria-label", `播放速度 ${speeds[speedIndex]} 倍`);
+    });
+    muteButton.addEventListener("click", () => {
+      audio.muted = !audio.muted;
+      muteButton.setAttribute("aria-pressed", String(audio.muted));
+      muteButton.setAttribute("aria-label", audio.muted ? "取消静音" : "静音");
+      volumeIcon.innerHTML = audio.muted
+        ? '<path d="M5 10v4h4l5 4V6L9 10H5zM18 9l4 6M22 9l-4 6" />'
+        : '<path d="M5 10v4h4l5 4V6L9 10H5zM17 9a4 4 0 010 6M19 7a7 7 0 010 10" />';
+    });
+
+    audio.addEventListener("loadedmetadata", updateTimeline);
+    audio.addEventListener("timeupdate", updateTimeline);
+    audio.addEventListener("play", updatePlayState);
+    audio.addEventListener("pause", updatePlayState);
+    audio.addEventListener("ended", () => loadScene(sceneIndex + 1, true));
+    window.addEventListener("keydown", (event) => {
+      if (event.target.matches("input, button")) return;
+      if (event.code === "Space") { event.preventDefault(); togglePlay(); }
+      if (event.key === "ArrowLeft") loadScene(sceneIndex - 1);
+      if (event.key === "ArrowRight") loadScene(sceneIndex + 1);
+    });
+
+    $("backdrop").style.backgroundImage = `url("${scenes[0].image}")`;
+    updatePlayState();
+  </script>
+</body>
+</html>

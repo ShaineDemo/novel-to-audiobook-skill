@@ -9,4 +9,4 @@ outputs/
 *.mp3
 *.m4a
 *.flac
-
+!docs/assets/audio/*.mp3
