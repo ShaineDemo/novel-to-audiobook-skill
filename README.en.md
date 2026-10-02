@@ -2,7 +2,7 @@
 
 [简体中文](README.md) | [English](README.en.md)
 
-> Private beta: turn an existing novel or short story into a production-ready package of illustrated audiobook assets.
+> Public beta: turn an existing novel or short story into a production-ready package of illustrated audiobook assets.
 
 This skill does not write the novel. It starts with fiction supplied by the user, uses Codex to structure the content and generate consistent storyboard images, uses Alibaba Cloud Model Studio (Bailian) for multi-character Chinese speech, and uses FFmpeg for trimming, assembly, loudness normalization, action-triggered sound effects, and timeline synchronization.
 
@@ -32,7 +32,7 @@ Then open:
 http://127.0.0.1:8080/
 ```
 
-If the repository is made public later, the existing `docs/` directory can be used directly as the source for GitHub Pages.
+For an online demo, the existing `docs/` directory can be used directly as the source for GitHub Pages.
 
 ## What it does
 
@@ -66,7 +66,7 @@ Codex and Bailian are separate products with separate subscriptions and billing.
 
 ## Installation
 
-> This repository is currently a private beta. You need repository access and a locally authenticated GitHub account before installation.
+> The repository is publicly readable. Voice generation still requires your own Alibaba Cloud Model Studio account, subscription, and local credentials.
 
 ### Option 1: Install from Codex (recommended)
 
@@ -208,9 +208,9 @@ These files can be imported into CapCut, Premiere Pro, or another editor, or use
     └── scripts/                 # Project initialization, TTS planning, and validation
 ```
 
-## Private-beta scope
+## Public-beta scope
 
-- This repository currently validates the workflow, project structure, voice continuity, and UI demo.
+- This public beta validates the workflow, project structure, voice continuity, and UI demo.
 - It does not contain API keys, private source fiction, or account information.
 - The demo uses selected short excerpts and compressed assets rather than a complete production project.
-- Before public release, review sample-asset rights, current Bailian model names, and subscription requirements.
+- Before a stable release, review sample-asset rights, current Bailian model names, and subscription requirements.
