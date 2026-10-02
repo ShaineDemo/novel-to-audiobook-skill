@@ -1,5 +1,7 @@
 # 小说转图文有声书 Skill
 
+[简体中文](README.md) | [English](README.en.md)
+
 > 私有测试版：把一部现成小说或一篇短篇小说，转换成可继续剪辑和发布的图文有声书素材包。
 
 这个 Skill 不负责创作小说。它从用户提供的正文开始，调用 Codex 完成内容拆分与连续分镜，调用阿里云百炼完成中文角色配音，再通过 FFmpeg 完成裁切、拼接、响度统一、动作音效和时间轴同步。
@@ -62,19 +64,69 @@ http://127.0.0.1:8080/
 
 Codex 与百炼分别订阅、分别计费。百炼凭据只保存在本地 Profile 或环境变量中，不能写入仓库、脚本或项目清单。
 
-## 安装私有测试版
+## 安装
 
-```bash
-git clone <private-repository-url>
-cd novel-to-audiobook-skill
-ln -s "$(pwd)/novel-to-audiobook" "$CODEX_HOME/skills/novel-to-audiobook"
+> 当前仓库为私有测试版。安装者需要先获得仓库访问权限，并在本机登录有权访问该仓库的 GitHub 账号。
+
+### 方法一：在 Codex 中安装（推荐）
+
+在 Codex 对话中输入：
+
+```text
+$skill-installer install https://github.com/ShaineDemo/novel-to-audiobook-skill/tree/main/novel-to-audiobook
 ```
 
-重新载入 Codex 后，可直接调用：
+安装完成后重新载入 Codex，然后输入：
 
 ```text
 $novel-to-audiobook 把这篇短篇小说做成图文有声书素材包。
 ```
+
+### 方法二：手动安装（macOS / Linux）
+
+```bash
+git clone https://github.com/ShaineDemo/novel-to-audiobook-skill.git
+cd novel-to-audiobook-skill
+
+SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
+mkdir -p "$SKILLS_DIR"
+ln -s "$(pwd)/novel-to-audiobook" "$SKILLS_DIR/novel-to-audiobook"
+```
+
+如果目标位置已经存在同名 Skill，请先确认其中没有需要保留的本地改动，再自行移除或改名。不要直接覆盖未知文件。
+
+### 方法三：手动安装（Windows PowerShell）
+
+```powershell
+git clone https://github.com/ShaineDemo/novel-to-audiobook-skill.git
+Set-Location novel-to-audiobook-skill
+
+$skillsDir = if ($env:CODEX_HOME) {
+  Join-Path $env:CODEX_HOME "skills"
+} else {
+  Join-Path $HOME ".codex\skills"
+}
+
+New-Item -ItemType Directory -Force -Path $skillsDir | Out-Null
+Copy-Item -Recurse .\novel-to-audiobook (Join-Path $skillsDir "novel-to-audiobook")
+```
+
+重新载入 Codex 后调用：
+
+```text
+$novel-to-audiobook 把这篇短篇小说做成图文有声书素材包。
+```
+
+### 更新
+
+如果使用手动克隆方式安装：
+
+```bash
+cd /path/to/novel-to-audiobook-skill
+git pull --ff-only
+```
+
+符号链接安装会立即使用更新后的文件；复制安装则需要重新复制 `novel-to-audiobook` 文件夹。
 
 ## 最少需要准备什么
 
@@ -146,6 +198,7 @@ project/
 ```text
 .
 ├── README.md
+├── README.en.md                # English documentation
 ├── docs/                       # 可交互 UI Demo，可直接用于 GitHub Pages
 └── novel-to-audiobook/
     ├── SKILL.md                # Skill 主说明
